@@ -57,6 +57,7 @@ type (
 	DataStyle struct {
 		CellTextColor         Style `yaml:"cellTextColor"`
 		SelectedRowColor      Style `yaml:"selectedRowColor"`
+		SelectedTextColor     Style `yaml:"selectedTextColor,omitempty"`
 		MultiSelectedRowColor Style `yaml:"multiSelectedRowColor"`
 		SearchHighlightColor  Style `yaml:"searchHighlightColor"`
 	}

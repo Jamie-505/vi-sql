@@ -64,6 +64,18 @@ func (g *ResultGrid) SetStyle(styles *config.Styles, dataStyle *config.DataStyle
 		Foreground(tcell.ColorWhite))
 	g.selectionStyle = tcell.StyleDefault.Background(dataStyle.MultiSelectedRowColor.Color()).Foreground(tcell.ColorWhite)
 	g.searchHighlightHex = dataStyle.SearchHighlightColor.String()
+	// Explicit selected-cell style; needed when backgroundColor is "default"
+	// (transparent), where tview's color swap yields unreadable text.
+	// Fallback fg: global background (mimics swap), or black when transparent.
+	selFg := styles.Global.BackgroundColor.Color()
+	if dataStyle.SelectedTextColor != "" {
+		selFg = dataStyle.SelectedTextColor.Color()
+	} else if selFg == tcell.ColorDefault {
+		selFg = tcell.ColorBlack
+	}
+	g.SetSelectedStyle(tcell.StyleDefault.
+		Background(dataStyle.SelectedRowColor.Color()).
+		Foreground(selFg))
 }
 
 // ToggleCellSelection anchors a rectangular selection at the current cell.

@@ -41,6 +41,7 @@ type (
 	}
 	TreeView struct {
 		*tview.TreeView
+		selectedTextColor tcell.Color
 	}
 	InputField struct {
 		*tview.InputField
@@ -129,6 +130,32 @@ func (t *TextArea) SetStyle(style *config.Styles) {
 
 func (t *TreeView) SetStyle(style *config.Styles) {
 	SetCommonStyle(t.TreeView, style)
+	t.selectedTextColor = tcell.ColorBlack
+	if c := style.Connection.ListSelectedTextColor.Color(); c != tcell.ColorDefault {
+		t.selectedTextColor = c
+	}
+}
+
+// Draw fixes the current node's text color when the background is
+// transparent: tview swaps node color and background, which yields a
+// ColorDefault foreground (unreadable on the highlight).
+func (t *TreeView) Draw(screen tcell.Screen) {
+	t.TreeView.Draw(screen)
+	node := t.GetCurrentNode()
+	if node == nil || t.GetBackgroundColor() != tcell.ColorDefault {
+		return
+	}
+	hl := node.GetColor()
+	x, y, w, h := t.GetInnerRect()
+	for row := y; row < y+h; row++ {
+		for col := x; col < x+w; col++ {
+			mainc, combc, st, _ := screen.GetContent(col, row)
+			fg, bg, _ := st.Decompose()
+			if bg == hl && fg == tcell.ColorDefault {
+				screen.SetContent(col, row, mainc, combc, st.Foreground(t.selectedTextColor))
+			}
+		}
+	}
 }
 
 func (i *InputField) SetStyle(style *config.Styles) {
